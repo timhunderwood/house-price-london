@@ -102,7 +102,7 @@ class MapView(object):
         """
         self.patch_collection.set_array(colors_array)
 
-    def animate(self, update_function):
+    def animate(self, update_function, frames):
         Writer = matplotlib.animation.writers["ffmpeg"]
         writer = Writer(fps=15, metadata=dict(artist="Tim"))
 
@@ -111,7 +111,7 @@ class MapView(object):
             update_function,
             init_func=self.initial_draw,
             interval=50,
-            frames=12 * 24,
+            frames=frames,
             repeat=False,
         )
         self.animation.save("mean_prices.mp4", writer=writer)

@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
+import logging
+
+LOGGER = logging.getLogger(__file__)
+LOGGER.setLevel("DEBUG")
+LOGGER.info("data loader")
+LOGGER.debug("data loader")
 
 
 class DataLoader(object):
@@ -175,6 +181,7 @@ class DataLoader(object):
         return os.path.exists(self._cached_data_path)
 
     def get_mean_prices(self, year, month):
+        LOGGER.debug("getting mean price for (%s, %s)", year, month)
         return self._data.loc[(year, month)][("price_gbp_mean")]
 
     def _save_data_to_disk(self):
