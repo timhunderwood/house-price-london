@@ -35,15 +35,13 @@ class Controller(object):
                 raise StopIteration()
             yield (year, month)
 
-
     def _update(self, i):
         year, month = next(self._input_iterator)
         colors = self.data_loader.get_mean_prices(year, month).values
         self.map_view.set_colors_for_patches(colors)
         self.map_view.draw_year_month_on_axis(year, month)
-        plot_x_data, plot_y_data = self.data_loader.get_prices_till(year, month)
-        self.map_view.plot_line(plot_x_data,plot_y_data)
-        # self.map_view.show()
+        plot_x_data, plot_y_data = self.data_loader.get_line_data()
+        self.map_view.plot_line(plot_x_data[:i], plot_y_data[:i])
 
     def animate(self):
         self.map_view.animate(self._update, self._frames)

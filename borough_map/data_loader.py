@@ -23,6 +23,9 @@ class DataLoader(object):
         self._cached_data_path = os.path.join(
             self._data_directory, "london_aggregated_cache.csv"
         )
+        self._cached_yearly_data_path = os.path.join(
+            self._data_directory, "yearly_london_aggregated_cache.csv"
+        )
         self.default_data_path = os.path.join(
             self._data_directory, "pp-complete_20190112.csv.gz"
         )
@@ -161,13 +164,28 @@ class DataLoader(object):
 
         :return:
         """
-        self._data = self._data.groupby(
-            ["year", "month", "address_county_1"]
-        ).aggregate({"price_gbp": ["mean", "median", "count"],"date_time":"first"})
-        self._data.columns = ['_'.join(col) for col in self._data.columns]
-        self._data = self._data.dropna(subset=["price_gbp_count"])
-        self._data["date_time_first"] = self._data["date_time_first"].values.astype('datetime64[M]')
-        self._data = self._data.rename(columns={"date_time_first":"date_time"})
+        df = self._data.groupby(["year", "month", "address_county_1"]).aggregate(
+            {"price_gbp": ["mean", "median", "count"], "date_time": "first"}
+        )
+        df.columns = ["_".join(col) for col in df.columns]
+        df = df.dropna(subset=["price_gbp_count"])
+        df["date_time_first"] = df["date_time_first"].values.astype("datetime64[M]")
+        df = df.rename(columns={"date_time_first": "date_time"})
+
+        aggregated_data = self._data.groupby(["year", "month"]).aggregate(
+            {"price_gbp": ["mean", "median", "count"], "date_time": "first"}
+        )
+        aggregated_data.columns = ["_".join(col) for col in aggregated_data.columns]
+        aggregated_data = aggregated_data.dropna(subset=["price_gbp_count"])
+        aggregated_data["date_time_first"] = aggregated_data[
+            "date_time_first"
+        ].values.astype("datetime64[M]")
+        aggregated_data = aggregated_data.rename(
+            columns={"date_time_first": "date_time"}
+        )
+
+        self._data = df
+        self._aggregated_data = aggregated_data
 
     def load_prepare_and_aggregate_data(self):
         """
@@ -184,7 +202,9 @@ class DataLoader(object):
             self._save_data_to_disk()
 
     def _cached_data_available(self):
-        return os.path.exists(self._cached_data_path)
+        return os.path.exists(self._cached_data_path) and os.path.exists(
+            self._cached_yearly_data_path
+        )
 
     def get_mean_prices(self, year, month):
         LOGGER.debug("getting mean price for (%s, %s)", year, month)
@@ -197,19 +217,24 @@ class DataLoader(object):
         :return:
         """
         self._data.to_csv(self._cached_data_path, index=True)
+        self._aggregated_data.to_csv(self._cached_yearly_data_path, index=True)
 
     def _load_cached_data(self):
         """
         Loads the data
         :return:
         """
-        self._data = pd.read_csv(self._cached_data_path, index_col=[0, 1, 2], parse_dates=["date_time"])
+        self._data = pd.read_csv(self._cached_data_path, index_col=[0, 1, 2])
+        self._aggregated_data = pd.read_csv(
+            self._cached_yearly_data_path, index_col=[0, 1], parse_dates=["date_time"]
+        )
 
-    def get_prices_till(self, year, month):
-        mask = (self._data["date_time"]<=pd.to_datetime("{}-{:02d}-01".format(year,month)))
-        df = self._data.loc[mask].groupby(level=[0,1]).aggregate({"price_gbp_median": "mean", "date_time":"first"})
-        x_data,y_data = df["date_time"], df["price_gbp_median"]
-        return x_data, y_data
+    def get_line_data(self):
+        x_data, y_data = (
+            self._aggregated_data["date_time"],
+            self._aggregated_data["price_gbp_median"],
+        )
+        return x_data.values, y_data.values
 
 
 if __name__ == "__main__":

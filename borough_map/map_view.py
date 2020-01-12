@@ -6,7 +6,11 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import matplotlib
 import matplotlib.animation
+import matplotlib.ticker
 import pandas
+from pandas.plotting import register_matplotlib_converters
+
+register_matplotlib_converters()
 
 
 class MapView(object):
@@ -21,12 +25,12 @@ class MapView(object):
 
         self.shape_reader = shp.Reader(self.shp_path)
 
-        self.fig = plt.figure(constrained_layout=True, figsize=(3*2,3*3))
+        self.fig = plt.figure(constrained_layout=True, figsize=(3 * 2, 3 * 3))
         gs = self.fig.add_gridspec(3, 2)
         self.map_ax = self.fig.add_subplot(gs[0:2, :])
         self.plot_ax = self.fig.add_subplot(gs[2, :])
 
-        #self.fig, (self.map_ax, self.plot_ax) = plt.subplots(nrows=2)
+        # self.fig, (self.map_ax, self.plot_ax) = plt.subplots(nrows=2)
         self.borough_to_plot_dict = {}
         self.boroughs = []
         self.patches = []
@@ -60,9 +64,15 @@ class MapView(object):
         self.map_ax.set_aspect("equal")
         self.map_ax.get_xaxis().set_visible(False)
         self.map_ax.get_yaxis().set_visible(False)
-        self.plot_ax.set_ylim(bottom=0, top=7.5E5)
-        self.plot_ax.set_xlim(left=pandas.to_datetime("1995-01-01"), right=pandas.to_datetime("2020-01-01"))
-        self.line, = self.plot_ax.plot([],[],"-")
+        self.plot_ax.set_ylim(bottom=0, top=7.5e5)
+        self.plot_ax.set_xlim(
+            left=pandas.to_datetime("1995-01-01"),
+            right=pandas.to_datetime("2020-01-01"),
+        )
+        self.line, = self.plot_ax.plot([], [], "-")
+        self.plot_ax.yaxis.set_major_formatter(
+            matplotlib.ticker.FuncFormatter(lambda x, p: "{}k".format(int(x // 1000)))
+        )
 
     def _add_patches_to_collection_and_axis(self):
         self.patch_collection = PatchCollection(self.patches, cmap="inferno")
@@ -79,10 +89,13 @@ class MapView(object):
         array = np.array((len(self.patches) - 1) * [0] + [1e6])
         self.patch_collection.set_array(array)
         colorbar = self.fig.colorbar(self.patch_collection, ax=self.map_ax)
-        colorbar.set_clim(0, 1e6)
+        self.patch_collection.set_clim(0, 1e6)
         colorbar.vmin = 0
         colorbar.vmax = 1e6
         colorbar.set_ticks(np.arange(0, 1.1e6, 1e5))
+        colorbar.ax.yaxis.set_major_formatter(
+            matplotlib.ticker.FuncFormatter(lambda x, p: "{}k".format(int(x // 1000)))
+        )
 
     def draw_year_month_on_axis(self, year, month):
         """
@@ -128,7 +141,7 @@ class MapView(object):
         # plt.show()
 
     def plot_line(self, plot_x_data, plot_y_data):
-        self.plot_ax.plot(plot_x_data, plot_y_data, "-", color="black")
+        self.line.set_data(plot_x_data, plot_y_data)
 
 
 if __name__ == "__main__":
