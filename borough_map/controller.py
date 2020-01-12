@@ -30,15 +30,15 @@ class Controller(object):
         colors = self.data_loader.get_mean_prices(year, month).values
         self.map_view.set_colors_for_patches(colors)
         self.map_view.draw_year_month_on_axis(year, month)
-        #self.map_view.show()
+        # self.map_view.show()
 
     def animate(self):
         self.map_view.animate(self._update)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     controller = Controller()
     controller.animate()
-    controller.show(1996,1)
+    controller.show(1996, 1)
     controller.map_view.initial_draw()
     controller.map_view.show()

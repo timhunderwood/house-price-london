@@ -9,11 +9,12 @@ import matplotlib.animation
 
 
 class MapView(object):
-
     def __init__(self, path=None):
 
         if path is None:
-            self.shp_path = os.path.join(os.getcwd(), '..', 'data', 'London_Borough_Excluding_MHW.shp')
+            self.shp_path = os.path.join(
+                os.getcwd(), "..", "data", "London_Borough_Excluding_MHW.shp"
+            )
         else:
             self.shp_path = path
 
@@ -47,29 +48,31 @@ class MapView(object):
             self.boroughs.append(borough)
 
     def _configure_axis(self):
-        self.ax.set_xlim(left=5E5, right=5.6E5)
-        self.ax.set_ylim(bottom=1.5E5, top=2.2E5)
-        self.ax.set_aspect('equal')
+        self.ax.set_xlim(left=5e5, right=5.6e5)
+        self.ax.set_ylim(bottom=1.5e5, top=2.2e5)
+        self.ax.set_aspect("equal")
         self.ax.get_xaxis().set_visible(False)
         self.ax.get_yaxis().set_visible(False)
 
     def _add_patches_to_collection_and_axis(self):
-        self.patch_collection = PatchCollection(self.patches, cmap='inferno')
+        self.patch_collection = PatchCollection(self.patches, cmap="inferno")
         self.ax.add_collection(self.patch_collection)
 
     def sort_patches_and_boroughs(self):
         zipped = zip(self.boroughs, self.patches)
-        self.patches = [patch for borough, patch in sorted(zipped, key=lambda pair: pair[0])]
+        self.patches = [
+            patch for borough, patch in sorted(zipped, key=lambda pair: pair[0])
+        ]
         self.boroughs = sorted(self.boroughs)
 
     def _create_initial_color_bar(self):
-        array = np.array((len(self.patches) - 1) * [0] + [1E6])
+        array = np.array((len(self.patches) - 1) * [0] + [1e6])
         self.patch_collection.set_array(array)
         colorbar = self.fig.colorbar(self.patch_collection, ax=self.ax)
-        colorbar.set_clim(0, 1E6)
+        colorbar.set_clim(0, 1e6)
         colorbar.vmin = 0
-        colorbar.vmax = 1E6
-        colorbar.set_ticks(np.arange(0, 1.1E6, 1E5))
+        colorbar.vmax = 1e6
+        colorbar.set_ticks(np.arange(0, 1.1e6, 1e5))
 
     def draw_year_month_on_axis(self, year, month):
         """
@@ -80,7 +83,13 @@ class MapView(object):
         """
         if self.text_on_axis is not None:
             self.text_on_axis.remove()
-        self.text_on_axis = self.ax.text(0., 1.0, '{}-{}'.format(year, month), transform=self.ax.transAxes, fontsize=24)
+        self.text_on_axis = self.ax.text(
+            0.0,
+            1.0,
+            "{}-{}".format(year, month),
+            transform=self.ax.transAxes,
+            fontsize=24,
+        )
 
     def show(self):
         plt.show()
@@ -94,15 +103,21 @@ class MapView(object):
         self.patch_collection.set_array(colors_array)
 
     def animate(self, update_function):
-        Writer =  matplotlib.animation.writers['ffmpeg']
-        writer = Writer(fps=15, metadata=dict(artist='Tim'))
+        Writer = matplotlib.animation.writers["ffmpeg"]
+        writer = Writer(fps=15, metadata=dict(artist="Tim"))
 
-        self.animation = matplotlib.animation.FuncAnimation(self.fig, update_function, init_func=self.initial_draw,
-                                                            interval=50, frames=12*24, repeat=False)
-        self.animation.save('mean_prices.mp4', writer=writer)
-        #plt.show()
+        self.animation = matplotlib.animation.FuncAnimation(
+            self.fig,
+            update_function,
+            init_func=self.initial_draw,
+            interval=50,
+            frames=12 * 24,
+            repeat=False,
+        )
+        self.animation.save("mean_prices.mp4", writer=writer)
+        # plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     map_view = MapView()
     map_view.initial_draw()
