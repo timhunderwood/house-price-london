@@ -12,9 +12,9 @@ class DataLoader(object):
         self._data = None
         self.all_london_boroughs = self.get_all_london_boroughs()
         self.max_price = 100E6
-        self._data_directory = os.path.join(os.getcwd(), '..', '..', 'data')
-        self._cached_data_path = os.path.join(self._data_directory,'london_aggregated_cache.csv' )
-        self.default_data_path = os.path.join(self._data_directory, 'pp-complete.csv.gz')
+        self._data_directory = os.path.join(os.getcwd(), '..', 'data')
+        self._cached_data_path = os.path.join(self._data_directory, 'london_aggregated_cache.csv' )
+        self.default_data_path = os.path.join(self._data_directory, 'pp-complete_20190112.csv.gz')
 
     def get_all_london_boroughs(self):
         """

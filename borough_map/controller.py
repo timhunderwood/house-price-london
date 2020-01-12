@@ -21,7 +21,7 @@ class Controller(object):
         self.map_view.show()
 
     def _get_year_month_pair_iterator(self):
-        years = range(1995, 2018)
+        years = range(1995, 2019)
         months = range(1, 13)
         return itertools.product(years, months)
 

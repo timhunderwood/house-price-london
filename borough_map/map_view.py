@@ -13,12 +13,12 @@ class MapView(object):
     def __init__(self, path=None):
 
         if path is None:
-            self.shp_path = os.path.join(os.getcwd(), '..', '..', 'data', 'London_Borough_Excluding_MHW.shp')
+            self.shp_path = os.path.join(os.getcwd(), '..', 'data', 'London_Borough_Excluding_MHW.shp')
         else:
             self.shp_path = path
 
         self.shape_reader = shp.Reader(self.shp_path)
-        self.fig, self.ax = plt.subplots(nrows=2)
+        self.fig, self.ax = plt.subplots()
         self.borough_to_plot_dict = {}
         self.boroughs = []
         self.patches = []
@@ -98,7 +98,7 @@ class MapView(object):
         writer = Writer(fps=15, metadata=dict(artist='Tim'))
 
         self.animation = matplotlib.animation.FuncAnimation(self.fig, update_function, init_func=self.initial_draw,
-                                                            interval=50, frames=12*22, repeat=False)
+                                                            interval=50, frames=12*24, repeat=False)
         self.animation.save('mean_prices.mp4', writer=writer)
         #plt.show()
 
