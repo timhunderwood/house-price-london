@@ -36,6 +36,7 @@ class MapView(object):
         self.patches = []
         self.patch_collection = None
         self.text_on_axis = None
+        self.disclaimer = None
 
     def initial_draw(self):
         """
@@ -73,6 +74,7 @@ class MapView(object):
         self.plot_ax.yaxis.set_major_formatter(
             matplotlib.ticker.FuncFormatter(lambda x, p: "{}k".format(int(x // 1000)))
         )
+
 
     def _add_patches_to_collection_and_axis(self):
         self.patch_collection = PatchCollection(self.patches, cmap="inferno")
@@ -112,6 +114,18 @@ class MapView(object):
             "{}-{}".format(year, month),
             transform=self.map_ax.transAxes,
             fontsize=24,
+        )
+        if self.disclaimer is not None:
+            self.disclaimer.remove()
+        self.disclaimer = self.plot_ax.text(
+            0.1,
+            -0.5,
+            "Contains National Statistics data © Crown copyright and database right [2015]\n"
+            "Contains Ordnance Survey data © Crown copyright and database right [2015]\n"
+            "Contains HM Land Registry data © Crown copyright and database right 2019.\n"
+            " This data is licensed under the Open Government Licence v3.0.",
+            transform=self.plot_ax.transAxes,
+            fontsize=4,
         )
 
     def show(self):
