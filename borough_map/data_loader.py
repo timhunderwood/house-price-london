@@ -3,6 +3,7 @@ import numpy as np
 import os
 import logging
 
+logging.basicConfig()
 LOGGER = logging.getLogger(__file__)
 LOGGER.setLevel("DEBUG")
 LOGGER.info("data loader")
@@ -131,6 +132,7 @@ class DataLoader(object):
             compression="gzip",
         )
         self._data = raw_df
+        LOGGER.debug("completed reading raw data")
 
     def _update_data_for_london_analysis(self):
         """
@@ -144,12 +146,14 @@ class DataLoader(object):
         df["month"] = df["date_time"].dt.month
         df["day"] = df["date_time"].dt.day
         df["epoch_seconds"] = df["date_time"].astype("int64")
-        df["address_county_1"] = df["address_county_1"].astype("category")
         df["is_london_borough"] = df["address_county_1"].isin(self.all_london_boroughs)
+        df["address_county_1"] = df["address_county_1"].astype("category")
         df = df.loc[
             df["price_gbp"] <= self.max_price
         ]  # not interested in prices over 100 MM
-        self._data = df.loc[df["is_london_borough"]].copy()
+        self._data = df.loc[df["is_london_borough"]]
+        LOGGER.debug(self._data["address_county_1"].unique())
+        LOGGER.debug("filtered to london only")
 
     def _aggregate_data(self):
         """
@@ -157,11 +161,13 @@ class DataLoader(object):
 
         :return:
         """
-
         self._data = self._data.groupby(
             ["year", "month", "address_county_1"]
-        ).aggregate({"price_gbp": ["mean", "median", "count"]})
-        self._data.columns = list(map("_".join, self._data.columns.values))
+        ).aggregate({"price_gbp": ["mean", "median", "count"],"date_time":"first"})
+        self._data.columns = ['_'.join(col) for col in self._data.columns]
+        self._data = self._data.dropna(subset=["price_gbp_count"])
+        self._data["date_time_first"] = self._data["date_time_first"].values.astype('datetime64[M]')
+        self._data = self._data.rename(columns={"date_time_first":"date_time"})
 
     def load_prepare_and_aggregate_data(self):
         """
@@ -197,7 +203,13 @@ class DataLoader(object):
         Loads the data
         :return:
         """
-        self._data = pd.read_csv(self._cached_data_path, index_col=[0, 1, 2])
+        self._data = pd.read_csv(self._cached_data_path, index_col=[0, 1, 2], parse_dates=["date_time"])
+
+    def get_prices_till(self, year, month):
+        mask = (self._data["date_time"]<=pd.to_datetime("{}-{:02d}-01".format(year,month)))
+        df = self._data.loc[mask].groupby(level=[0,1]).aggregate({"price_gbp_median": "mean", "date_time":"first"})
+        x_data,y_data = df["date_time"], df["price_gbp_median"]
+        return x_data, y_data
 
 
 if __name__ == "__main__":

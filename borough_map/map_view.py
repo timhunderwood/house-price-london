@@ -6,6 +6,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import matplotlib
 import matplotlib.animation
+import pandas
 
 
 class MapView(object):
@@ -19,7 +20,13 @@ class MapView(object):
             self.shp_path = path
 
         self.shape_reader = shp.Reader(self.shp_path)
-        self.fig, self.ax = plt.subplots()
+
+        self.fig = plt.figure(constrained_layout=True, figsize=(3*2,3*3))
+        gs = self.fig.add_gridspec(3, 2)
+        self.map_ax = self.fig.add_subplot(gs[0:2, :])
+        self.plot_ax = self.fig.add_subplot(gs[2, :])
+
+        #self.fig, (self.map_ax, self.plot_ax) = plt.subplots(nrows=2)
         self.borough_to_plot_dict = {}
         self.boroughs = []
         self.patches = []
@@ -48,15 +55,18 @@ class MapView(object):
             self.boroughs.append(borough)
 
     def _configure_axis(self):
-        self.ax.set_xlim(left=5e5, right=5.6e5)
-        self.ax.set_ylim(bottom=1.5e5, top=2.2e5)
-        self.ax.set_aspect("equal")
-        self.ax.get_xaxis().set_visible(False)
-        self.ax.get_yaxis().set_visible(False)
+        self.map_ax.set_xlim(left=5e5, right=5.6e5)
+        self.map_ax.set_ylim(bottom=1.5e5, top=2.2e5)
+        self.map_ax.set_aspect("equal")
+        self.map_ax.get_xaxis().set_visible(False)
+        self.map_ax.get_yaxis().set_visible(False)
+        self.plot_ax.set_ylim(bottom=0, top=7.5E5)
+        self.plot_ax.set_xlim(left=pandas.to_datetime("1995-01-01"), right=pandas.to_datetime("2020-01-01"))
+        self.line, = self.plot_ax.plot([],[],"-")
 
     def _add_patches_to_collection_and_axis(self):
         self.patch_collection = PatchCollection(self.patches, cmap="inferno")
-        self.ax.add_collection(self.patch_collection)
+        self.map_ax.add_collection(self.patch_collection)
 
     def sort_patches_and_boroughs(self):
         zipped = zip(self.boroughs, self.patches)
@@ -68,7 +78,7 @@ class MapView(object):
     def _create_initial_color_bar(self):
         array = np.array((len(self.patches) - 1) * [0] + [1e6])
         self.patch_collection.set_array(array)
-        colorbar = self.fig.colorbar(self.patch_collection, ax=self.ax)
+        colorbar = self.fig.colorbar(self.patch_collection, ax=self.map_ax)
         colorbar.set_clim(0, 1e6)
         colorbar.vmin = 0
         colorbar.vmax = 1e6
@@ -83,11 +93,11 @@ class MapView(object):
         """
         if self.text_on_axis is not None:
             self.text_on_axis.remove()
-        self.text_on_axis = self.ax.text(
+        self.text_on_axis = self.map_ax.text(
             0.0,
             1.0,
             "{}-{}".format(year, month),
-            transform=self.ax.transAxes,
+            transform=self.map_ax.transAxes,
             fontsize=24,
         )
 
@@ -117,7 +127,11 @@ class MapView(object):
         self.animation.save("mean_prices.mp4", writer=writer)
         # plt.show()
 
+    def plot_line(self, plot_x_data, plot_y_data):
+        self.plot_ax.plot(plot_x_data, plot_y_data, "-", color="black")
+
 
 if __name__ == "__main__":
     map_view = MapView()
     map_view.initial_draw()
+    plt.show()

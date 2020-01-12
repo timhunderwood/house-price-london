@@ -2,6 +2,7 @@ from borough_map.data_loader import DataLoader
 from borough_map.map_view import MapView
 import itertools
 import logging
+import pandas
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__file__)
@@ -16,11 +17,9 @@ class Controller(object):
         self.data_loader = DataLoader()
         self.map_view = MapView()
         self.data_loader.load_prepare_and_aggregate_data()
-        start_year, end_year, end_month = 1995, 2019, 11
-        self._frames = (end_year - start_year) * 12 + end_month
-        self._input_iterator = self._get_year_month_pair_iterator(
-            start_year, end_year, end_month
-        )
+        self._start_year, self._end_year, self._end_month = 1995, 2019, 11
+        self._frames = (self._end_year - self._start_year) * 12 + self._end_month
+        self._input_iterator = self._get_year_month_pair_iterator()
 
     def show(self, year, month):
         colors = self.data_loader.get_mean_prices(year, month).values
@@ -28,19 +27,22 @@ class Controller(object):
         self.map_view.set_colors_for_patches(colors)
         self.map_view.show()
 
-    def _get_year_month_pair_iterator(self, start_year, end_year, end_month):
-        years = range(start_year, end_year + 1)
+    def _get_year_month_pair_iterator(self,):
+        years = range(self._start_year, self._end_year + 1)
         months = range(1, 13)
         for (year, month) in itertools.product(years, months):
-            if year == end_year and month > end_month:
+            if year == self._end_year and month > self._end_month:
                 raise StopIteration()
             yield (year, month)
+
 
     def _update(self, i):
         year, month = next(self._input_iterator)
         colors = self.data_loader.get_mean_prices(year, month).values
         self.map_view.set_colors_for_patches(colors)
         self.map_view.draw_year_month_on_axis(year, month)
+        plot_x_data, plot_y_data = self.data_loader.get_prices_till(year, month)
+        self.map_view.plot_line(plot_x_data,plot_y_data)
         # self.map_view.show()
 
     def animate(self):
