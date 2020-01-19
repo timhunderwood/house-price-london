@@ -26,13 +26,13 @@ class MapView:
         """
 
         if path is None:
-            self.shp_path = os.path.join(
+            self._shp_path = os.path.join(
                 os.getcwd(), "..", "data", "London_Borough_Excluding_MHW.shp"
             )
         else:
-            self.shp_path = path
+            self._shp_path = path
 
-        self.shape_reader = shp.Reader(self.shp_path)
+        self.shape_reader = shp.Reader(self._shp_path)
 
         self.fig = plt.figure(constrained_layout=True, figsize=(3 * 2, 3 * 3))
         gs = self.fig.add_gridspec(3, 2)
