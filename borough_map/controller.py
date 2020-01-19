@@ -23,6 +23,7 @@ class Controller(object):
 
     def show(self, year, month):
         colors = self.data_loader.get_mean_prices(year, month).values
+        # colors[20] = 1E7
         self.map_view.initial_draw()
         self.map_view.set_colors_for_patches(colors)
         self.map_view.show()
@@ -37,7 +38,7 @@ class Controller(object):
 
     def _update(self, i):
         year, month = next(self._input_iterator)
-        colors = self.data_loader.get_mean_prices(year, month).values
+        colors = self.data_loader.get_median_prices(year, month).values
         self.map_view.set_colors_for_patches(colors)
         self.map_view.draw_year_month_on_axis(year, month)
         plot_x_data, plot_y_data = self.data_loader.get_line_data()
@@ -49,7 +50,7 @@ class Controller(object):
 
 if __name__ == "__main__":
     controller = Controller()
+    #    controller.show(1996, 1)
     controller.animate()
-    controller.show(1996, 1)
     controller.map_view.initial_draw()
     controller.map_view.show()
