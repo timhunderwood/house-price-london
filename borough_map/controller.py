@@ -23,7 +23,6 @@ class Controller(object):
 
     def show(self, year, month):
         colors = self.data_loader.get_mean_prices(year, month).values
-        # colors[20] = 1E7
         self.map_view.initial_draw()
         self.map_view.set_colors_for_patches(colors)
         self.map_view.show()
