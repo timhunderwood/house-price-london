@@ -37,6 +37,9 @@ class MapView(object):
         self.patch_collection = None
         self.text_on_axis = None
         self.disclaimer = None
+        self._borough_name_mappings = {
+            "WESTMINSTER": "CITY OF WESTMINSTER"
+        }  # align between names in house price data and in shape file
 
     def initial_draw(self):
         """
@@ -53,6 +56,8 @@ class MapView(object):
     def _loop_over_shape_file_and_create_polygons(self):
         for shape in self.shape_reader.shapeRecords():
             borough = shape.record[0].upper()
+            if borough in self._borough_name_mappings:
+                borough = self._borough_name_mappings[borough]
             xy = np.array(shape.shape.points)
             polygon = Polygon(xy, False)
             self.patches.append(polygon)
@@ -75,9 +80,8 @@ class MapView(object):
             matplotlib.ticker.FuncFormatter(lambda x, p: "{}k".format(int(x // 1000)))
         )
 
-
     def _add_patches_to_collection_and_axis(self):
-        self.patch_collection = PatchCollection(self.patches, cmap="inferno")
+        self.patch_collection = PatchCollection(self.patches, cmap="plasma")
         self.map_ax.add_collection(self.patch_collection)
 
     def sort_patches_and_boroughs(self):

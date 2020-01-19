@@ -210,6 +210,10 @@ class DataLoader(object):
         LOGGER.debug("getting mean price for (%s, %s)", year, month)
         return self._borough_data.loc[(year, month)][("price_gbp_mean")]
 
+    def get_median_prices(self, year, month):
+        LOGGER.debug("getting mean price for (%s, %s)", year, month)
+        return self._borough_data.loc[(year, month)][("price_gbp_median")]
+
     def _save_data_to_disk(self):
         """
         save data to disk
