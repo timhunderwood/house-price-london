@@ -33,8 +33,8 @@ class MapView:
             self._shp_path = path
 
         self.shape_reader = shp.Reader(self._shp_path)
-
-        self.fig = plt.figure(constrained_layout=True, figsize=(3 * 2, 3 * 3))
+        figsize = 3 * numpy.array([2, 3])
+        self.fig = plt.figure(constrained_layout=True, figsize=figsize)
         gs = self.fig.add_gridspec(3, 2)
         self.map_ax = self.fig.add_subplot(gs[0:2, :])
         self.plot_ax = self.fig.add_subplot(gs[2, :])
@@ -71,8 +71,8 @@ class MapView:
 
     def _configure_axis(self) -> None:
         """Configure the plot axes."""
-        self.map_ax.set_xlim(left=5e5, right=5.6e5)
-        self.map_ax.set_ylim(bottom=1.5e5, top=2.2e5)
+        self.map_ax.set_xlim(left=5.025e5, right=5.625e5)
+        self.map_ax.set_ylim(bottom=1.55e5, top=2.025e5)
         self.map_ax.set_aspect("equal")
         self.map_ax.get_xaxis().set_visible(False)
         self.map_ax.get_yaxis().set_visible(False)
