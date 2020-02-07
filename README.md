@@ -1,7 +1,8 @@
-#London House Prices
+
+# London House Prices
 [See blog post](https://nonetype.eu.pythonanywhere.com/articles/0007)
 
-##Data disclaimers/copyright:
+## Data disclaimers/copyright:
 Contains National Statistics data © Crown copyright and database right [2015] and Contains Ordnance Survey data © Crown copyright and database right [2015].
 Contains National Statistics data © Crown copyright and database right [2012].
 Contains Ordnance Survey data © Crown copyright and database right [2012].
