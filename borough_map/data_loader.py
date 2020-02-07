@@ -21,7 +21,7 @@ class DataLoader:
     to load the data frame. Then public methods can be called on the object to get data.
     """
 
-    def __init__(self):
+    def __init__(self, price_paid_file_name):
         """Instantiate the DataLoader.
 
         All dataframes are initialised as None and then populated by calling load_prepare_and_aggregate_data.
@@ -39,8 +39,8 @@ class DataLoader:
         self._cached_yearly_data_path: str = os.path.join(
             self._data_directory, "yearly_london_aggregated_cache.csv"
         )
-        self.default_data_path: str = os.path.join(
-            self._data_directory, "pp-complete_20190112.csv.gz"
+        self._price_paid_data_path: str = os.path.join(
+            self._data_directory, price_paid_file_name
         )
 
     def get_all_london_boroughs(self) -> List[str]:
@@ -86,8 +86,10 @@ class DataLoader:
             "Sutton",
             "Waltham Forest",
         ]
-        return [str.upper(borough) for borough in inner_london_boroughs+outer_london_boroughs ]
-
+        return [
+            str.upper(borough)
+            for borough in inner_london_boroughs + outer_london_boroughs
+        ]
 
     def _load_data(self, path: str) -> pandas.DataFrame:
         """Reads the data from CSV and loads it into a dataframe.
@@ -174,12 +176,14 @@ class DataLoader:
         Performs group bys to produce much smaller datasets required for the plots.
         :return: tuple of pandas Dataframes that have been aggregated.
         """
-        borough_df = self._raw_df.groupby(["year", "month", "address_county_1"]).aggregate(
-            {"price_gbp": ["mean", "median", "count"], "date_time": "first"}
-        )
+        borough_df = self._raw_df.groupby(
+            ["year", "month", "address_county_1"]
+        ).aggregate({"price_gbp": ["mean", "median", "count"], "date_time": "first"})
         borough_df.columns = ["_".join(col) for col in borough_df.columns]
         borough_df = borough_df.dropna(subset=["price_gbp_count"])
-        borough_df["date_time_first"] = borough_df["date_time_first"].values.astype("datetime64[M]")
+        borough_df["date_time_first"] = borough_df["date_time_first"].values.astype(
+            "datetime64[M]"
+        )
         borough_df = borough_df.rename(columns={"date_time_first": "date_time"})
 
         aggregated_data = self._raw_df.groupby(["year", "month"]).aggregate(
@@ -195,17 +199,17 @@ class DataLoader:
         )
         return borough_df, aggregated_data
 
-
-
     def load_prepare_and_aggregate_data(self) -> None:
         """Loads prepares and aggregates the self._data attribute.
 
         Updates the dataframe attributes of the object.
         """
         if self._cached_data_available():
+            LOGGER.info("Reading cached aggregated data.")
             self._borough_data, self._aggregated_data = self._load_cached_data()
         else:
-            self._raw_df = self._load_data(self.default_data_path)
+            LOGGER.info("Did not find cached aggregated data. Reading raw data.")
+            self._raw_df = self._load_data(self._price_paid_data_path)
             self._raw_df = self._update_data_for_london_analysis()
             self._borough_data, self._aggregated_data = self._aggregate_data()
             self._save_data_to_disk()
@@ -216,7 +220,7 @@ class DataLoader:
             self._cached_yearly_data_path
         )
 
-    def get_mean_prices(self, year:int, month:int) -> pandas.Series:
+    def get_mean_prices(self, year: int, month: int) -> pandas.Series:
         """Get the mean price for that year, month as a series for all address_county_1s"""
         LOGGER.debug("getting mean price for (%s, %s)", year, month)
         return self._borough_data.loc[(year, month)][("price_gbp_mean")]
@@ -226,7 +230,7 @@ class DataLoader:
         LOGGER.debug("getting mean price for (%s, %s)", year, month)
         return self._borough_data.loc[(year, month)][("price_gbp_median")]
 
-    def _save_data_to_disk(self)->None:
+    def _save_data_to_disk(self) -> None:
         """Save the borough and aggregated dataframes to disk for caching."""
         self._borough_data.to_csv(self._cached_data_path, index=True)
         self._aggregated_data.to_csv(self._cached_yearly_data_path, index=True)
@@ -241,7 +245,6 @@ class DataLoader:
             self._cached_yearly_data_path, index_col=[0, 1], parse_dates=["date_time"]
         )
         return borough_data, aggregated_data
-
 
     def get_line_data(self) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """Gets the data necessary for the median line data below the cmap plot.

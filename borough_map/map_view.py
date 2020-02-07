@@ -19,18 +19,12 @@ register_matplotlib_converters()
 class MapView:
     """Class to plot the view (map and line plots etc.)."""
 
-    def __init__(self, path:Optional[str]=None):
+    def __init__(self, shp_file_name: str):
         """Instantiate the MapView.
 
         :param path:
         """
-
-        if path is None:
-            self._shp_path = os.path.join(
-                os.getcwd(), "..", "data", "London_Borough_Excluding_MHW.shp"
-            )
-        else:
-            self._shp_path = path
+        self._shp_path = os.path.join(os.getcwd(), "..", "data", shp_file_name)
 
         self.shape_reader = shp.Reader(self._shp_path)
         figsize = 3 * numpy.array([2, 3])
@@ -112,7 +106,7 @@ class MapView:
             matplotlib.ticker.FuncFormatter(lambda x, p: "{}k".format(int(x // 1000)))
         )
 
-    def draw_text_on_axis(self, year: int, month: int)->None:
+    def draw_text_on_axis(self, year: int, month: int) -> None:
         """Write the year month as text on the axes and disclaimer text.
 
         :param year:

@@ -12,12 +12,30 @@ LOGGER = logging.getLogger(__file__)
 class Controller:
     """Controls the data and maps it to the map view."""
 
-    def __init__(self, start_year=1995, end_year=2019, end_month=11):
-        """Instantiate the controller."""
-        self.data_loader = DataLoader()
-        self.map_view = MapView()
+    def __init__(
+        self,
+        raw_price_paid_file_name: str = "pp-complete.csv.gz",
+        shp_file_name: str = "London_Borough_Excluding_MHW.shp",
+        start_year: int = 1995,
+        end_year: int = 2019,
+        end_month: int = 11,
+    ):
+        """Instantiate the controller.
+
+        :param raw_price_paid_file_name: price paid data file name
+        :param shp_file_name: shape file for london boroughs name
+        :param start_year: start year of the price paid data (assumed to start in Jan)
+        :param end_year: end year of the price paid data
+        :param end_month: end month of the price paid data
+        """
+        self.data_loader = DataLoader(raw_price_paid_file_name)
+        self.map_view = MapView(shp_file_name)
         self.data_loader.load_prepare_and_aggregate_data()
-        self._start_year, self._end_year, self._end_month = start_year, end_year, end_month
+        self._start_year, self._end_year, self._end_month = (
+            start_year,
+            end_year,
+            end_month,
+        )
         self._frames = (self._end_year - self._start_year) * 12 + self._end_month
         self._input_iterator = self._get_year_month_pair_iterator()
 
@@ -33,7 +51,7 @@ class Controller:
         self.map_view.set_colors_for_patches(colors)
         self.map_view.show()
 
-    def _get_year_month_pair_iterator(self,) -> Iterator[Tuple[int,int]]:
+    def _get_year_month_pair_iterator(self,) -> Iterator[Tuple[int, int]]:
         """Iterator for year month looping stopping at a fixed month in final year.
 
         :return: iterator
@@ -61,13 +79,6 @@ class Controller:
         plot_x_data, plot_y_data = self.data_loader.get_line_data()
         self.map_view.plot_line(plot_x_data[:i], plot_y_data[:i])
 
-    def animate(self)-> None:
+    def animate(self) -> None:
         """Wrapper to call the map_view's animate method."""
         self.map_view.animate(self._update, self._frames)
-
-
-if __name__ == "__main__":
-    controller = Controller()
-    # controller.show(1996, 1)
-    controller.animate()
-
